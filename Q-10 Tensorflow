@@ -1,0 +1,40 @@
+import numpy as np
+
+class CustomEnvironment:
+    def __init__(self):
+        self.state = 0.5  # Initial state
+        self.action_space = [0, 1]  # Actions: 0 = move left, 1 = move right
+
+    def reset(self):
+        self.state = 0.5
+        return self.state
+
+    def step(self, action):
+        if action == 0:  # Move left
+            self.state -= 0.1
+        else:  # Move right
+            self.state += 0.1
+
+        if self.state <= 0:
+            reward = -0.5  # Punishment for going too far left
+            done = True
+        elif self.state >= 1:
+            reward = 2.0  # Reward for reaching the goal
+            done = True
+        else:
+            reward = 5.0  # No reward or punishment for intermediate steps
+            done = False
+        return self.state, reward, done
+
+# Create environment instance
+environment = CustomEnvironment()
+
+# Run the environment for 10 steps with random actions
+cumulative_reward = 0
+for _ in range(10):
+    action = np.random.choice(environment.action_space)
+    next_state, reward, done = environment.step(action)
+    print(f"Action: {action}, Next State: {next_state}, Reward: {reward}")
+    cumulative_reward += reward
+
+print(f"Cumulative Reward: {cumulative_reward}")
