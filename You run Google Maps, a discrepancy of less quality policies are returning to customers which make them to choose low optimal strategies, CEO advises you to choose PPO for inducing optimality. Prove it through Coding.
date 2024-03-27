@@ -1,0 +1,50 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Simplified environment
+# Let's assume the environment has 5 possible routes, and the best route is number 3.
+NUM_ROUTES = 5
+BEST_ROUTE = 3
+
+class SimpleMapEnv:
+    def step(self, action):
+        # Negative reward for any choice not matching the best route
+        reward = -1 if action != BEST_ROUTE else 0
+        return reward
+
+class PolicyNetwork(nn.Module):
+    def __init__(self):
+        super(PolicyNetwork, self).__init__()
+        self.fc = nn.Linear(1, NUM_ROUTES)  # Simple linear layer
+
+    def forward(self, x):
+        return torch.softmax(self.fc(x), dim=-1)  # Action probabilities
+
+# Instantiate environment and policy
+env = SimpleMapEnv()
+policy = PolicyNetwork()
+optimizer = optim.Adam(policy.parameters(), lr=1e-2)
+
+# Training loop
+for episode in range(1000):
+    state = torch.FloatTensor([1])  # Dummy state
+    probs = policy(state)
+    action = torch.multinomial(probs, 1).item()
+    reward = env.step(action)
+    
+    # PPO loss (simplified, focusing on the concept)
+    m = torch.distributions.Categorical(probs)
+    loss = -m.log_prob(torch.tensor(action)) * reward  # Policy gradient
+    
+    # Update policy
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    
+    # Optionally, print out the action probabilities every 100 episodes
+    if episode % 100 == 0:
+        print(f'Episode {episode}, Action probabilities: {probs.detach().numpy()}')
+
+# Ideally, the action probabilities for choosing the best route (number 3) should increase over time.
